@@ -21,7 +21,7 @@ public class ResembleController {
         ResembleRequest.Data data = new ResembleRequest.Data();
         data.setBody(text);
         data.setTitle("mimio" + System.currentTimeMillis());
-        data.setVoice("584fae8e");
+        data.setVoice("2fd79064");
 
         resembleRequest.setData(data);
         resembleRequest.setOutput_format("mp3");
