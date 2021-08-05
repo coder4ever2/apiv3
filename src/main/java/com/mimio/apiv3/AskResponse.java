@@ -15,7 +15,29 @@ public class AskResponse {
 
     private String intent;
 
+
+    private String asset;
+
+    private String audio;
+
     private String additionalContext;
+
+    public String getAsset() {
+        return asset;
+    }
+
+    public void setAsset(String asset) {
+        this.asset = asset;
+    }
+
+    public String getAudio() {
+        return audio;
+    }
+
+    public void setAudio(String audio) {
+        this.audio = audio;
+    }
+
 
     public String getResponse() {
         return response;

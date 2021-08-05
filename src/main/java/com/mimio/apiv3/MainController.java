@@ -12,11 +12,13 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URISyntaxException;
 import java.util.*;
 
 @CrossOrigin
 @RestController
 public class MainController {
+    public static final Random RANDOM = new Random();
     private static String projectId = "mimio-es-wmtr";
     private static String languageCode = "en-US";
     private static String sessionId = "123456789";
@@ -24,6 +26,11 @@ public class MainController {
     @GetMapping("/hello")
     public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
         return String.format("Hello %s!", name);
+    }
+
+    @GetMapping("/test/audio")
+    public String audio(@RequestParam(value = "text", defaultValue = "Hi, there , how are you doing? This is Mimio!") String name) throws URISyntaxException {
+        return ResembleController.getAudioURL("Bye, see you later.");
     }
 
     @GetMapping("/input")
@@ -81,14 +88,18 @@ public class MainController {
         GoogleCloudDialogflowV2IntentMessageText text = new GoogleCloudDialogflowV2IntentMessageText();
         ArrayList<String> textList = new ArrayList<>();
         Object movieName = request.getQueryResult().getParameters().get("movieName");
-        String responseText = "I am a movie buff!! ";
-
+        String responseText = "I am a movie buff! ";
+        System.out.println("=============Webhook BEGINS=======" + movieName.toString());
         if(movieName !=null){
             RestTemplate restTemplate =  new RestTemplate();
             Movie movie = restTemplate.getForObject(
                     "https://www.omdbapi.com/?apikey=bdfbd3aa&plot=short&t="+movieName, Movie.class);
             if(movie!=null && movie.getPlot()!=null){
-                responseText = responseText + "I like the movie "+ movie.getTitle() + ". "+movie.getPlot() + " I believe it also got a few interesting awards. "+ movie.getAwards();
+                responseText = responseText + "I like the movie "
+                        + movie.getTitle()
+                        + ". "+movie.getPlot()
+                        + " I believe it also got a few interesting awards. "+ movie.getAwards()
+                        + " Pretty cool, right?";
             }
         }else {
             responseText = "However, I haven't heard of this movie";
@@ -102,6 +113,7 @@ public class MainController {
 
         GoogleCloudDialogflowV2WebhookResponse response = new GoogleCloudDialogflowV2WebhookResponse();
         response.setFulfillmentMessages(msgs);
+        System.out.println("==========Webhook - ENDS==========");
         return getStringResponse(response);
     }
 
@@ -158,7 +170,15 @@ public class MainController {
                 e.printStackTrace();
             }
             askResponse.setIntent(queryResult.getIntent().toString());
+            try {
+                askResponse.setAudio(ResembleController.getAudioURL(askResponse.getResponse()));
+            }catch(URISyntaxException e){
+                System.err.print(e);
+            }
 
+            if(RANDOM.nextInt()%3==0) {
+                askResponse.setAsset("https://en.wikipedia.org/wiki/2020_Summer_Olympics#/media/File:Shibuya_Crossing_2020-04-19_(2).jpg");
+            }
 
             System.out.println("====================");
             System.out.format("Query Text: '%s'\n", queryResult.getQueryText());
