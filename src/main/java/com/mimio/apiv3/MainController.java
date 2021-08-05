@@ -88,21 +88,25 @@ public class MainController {
         GoogleCloudDialogflowV2IntentMessageText text = new GoogleCloudDialogflowV2IntentMessageText();
         ArrayList<String> textList = new ArrayList<>();
         Object movieName = request.getQueryResult().getParameters().get("movieName");
-        String responseText = "I am a movie buff! ";
+        String responseText = "";
         System.out.println("=============Webhook BEGINS=======" + movieName.toString());
         if(movieName !=null){
             RestTemplate restTemplate =  new RestTemplate();
             Movie movie = restTemplate.getForObject(
                     "https://www.omdbapi.com/?apikey=bdfbd3aa&plot=short&t="+movieName, Movie.class);
             if(movie!=null && movie.getPlot()!=null){
-                responseText = responseText + "I like the movie "
+                responseText = responseText + "I also like the movie "
                         + movie.getTitle()
-                        + ". "+movie.getPlot()
-                        + " I believe it also got a few interesting awards. "+ movie.getAwards()
-                        + " Pretty cool, right?";
+                        + ", I think it's an interesting "
+                        + movie.getGenre()
+                        + " movie."
+                        //+movie.getPlot()
+                        //+ "I believe it also got a won interesting awards. "+ movie.getAwards()
+                        //+ " Pretty cool, right?"
+                        ;
             }
         }else {
-            responseText = "However, I haven't heard of this movie";
+            responseText = "I haven't heard of this movie.";
         }
         textList.add(responseText);
         //textList.add(String.valueOf(request.getQueryResult().getFulfillmentMessages().get(0).getText()));
@@ -164,7 +168,11 @@ public class MainController {
 
             askResponse.setResponse(queryResult.getFulfillmentText());
             try {
-                askResponse.setResponse(String.valueOf(queryResult.getFulfillmentMessages(0).getText().getText(0)));
+                String responseText = String.valueOf(queryResult.getFulfillmentMessages(0).getText().getText(0));
+                if(queryResult.getFulfillmentMessagesCount()>1){
+                    responseText = responseText + ". "+ String.valueOf(queryResult.getFulfillmentMessages(1).getText().getText(0));
+                }
+                askResponse.setResponse(responseText);
                 askResponse.setAdditionalContext(queryResult.getFulfillmentText());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -177,7 +185,7 @@ public class MainController {
             }
 
             if(RANDOM.nextInt()%3==0) {
-                askResponse.setAsset("https://en.wikipedia.org/wiki/2020_Summer_Olympics#/media/File:Shibuya_Crossing_2020-04-19_(2).jpg");
+                askResponse.setAsset("https://www.mimio.ai/static/media/twitter.5095d1f1.svg");
             }
 
             System.out.println("====================");

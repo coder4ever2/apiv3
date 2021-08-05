@@ -20,6 +20,18 @@ public class Movie{
     @JsonProperty("Awards")
     private String Awards;
 
+    public String getGenre() {
+        return Genre;
+    }
+
+    public void setGenre(String genre) {
+        Genre = genre;
+    }
+
+    @JsonProperty("Genre")
+    private String Genre;
+
+
     public Movie(){
 
     }
