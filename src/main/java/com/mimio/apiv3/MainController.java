@@ -19,6 +19,7 @@ import java.util.*;
 @RestController
 public class MainController {
     public static final Random RANDOM = new Random();
+    public static final String BirthdayIntent = "user_ask_Bday";
     private static String projectId = "mimio-es-wmtr";
     private static String languageCode = "en-US";
     private static String sessionId = "123456789";
@@ -84,12 +85,32 @@ public class MainController {
 
         //Step 2. Process the request
         //Step 3. Build the response message
+        System.out.println("=============Webhook BEGINS=======");
         GoogleCloudDialogflowV2IntentMessage msg = new GoogleCloudDialogflowV2IntentMessage();
         GoogleCloudDialogflowV2IntentMessageText text = new GoogleCloudDialogflowV2IntentMessageText();
         ArrayList<String> textList = new ArrayList<>();
-        Object movieName = request.getQueryResult().getParameters().get("movieName");
         String responseText = "";
-        System.out.println("=============Webhook BEGINS=======" + movieName.toString());
+        if("MOVIE - custom".equals(request.getQueryResult().getIntent().getDisplayName())) {
+            System.out.println("=============MOVIE Webhook =======");
+            responseText = getMovieString(request, responseText);
+        }else if(BirthdayIntent.equals(request.getQueryResult().getIntent().getDisplayName())){
+            System.out.println("=============BIRTHDAY Webhook =======");
+            responseText = getBirthdayString(request, responseText);
+        }
+        textList.add(responseText);
+        text.setText(textList);
+        msg.setText(text);
+        List<GoogleCloudDialogflowV2IntentMessage> msgs = new ArrayList<GoogleCloudDialogflowV2IntentMessage>();
+        msgs.add(msg);
+
+        GoogleCloudDialogflowV2WebhookResponse response = new GoogleCloudDialogflowV2WebhookResponse();
+        response.setFulfillmentMessages(msgs);
+        System.out.println("==========Webhook - ENDS==========");
+        return getStringResponse(response);
+    }
+
+    private String getMovieString(GoogleCloudDialogflowV2WebhookRequest request, String responseText) {
+        Object movieName = request.getQueryResult().getParameters().get("movieName");
         if(movieName !=null){
             RestTemplate restTemplate =  new RestTemplate();
             Movie movie = restTemplate.getForObject(
@@ -108,17 +129,11 @@ public class MainController {
         }else {
             responseText = "I haven't heard of this movie.";
         }
-        textList.add(responseText);
-        //textList.add(String.valueOf(request.getQueryResult().getFulfillmentMessages().get(0).getText()));
-        text.setText(textList);
-        msg.setText(text);
-        List<GoogleCloudDialogflowV2IntentMessage> msgs = new ArrayList<GoogleCloudDialogflowV2IntentMessage>();
-        msgs.add(msg);
-
-        GoogleCloudDialogflowV2WebhookResponse response = new GoogleCloudDialogflowV2WebhookResponse();
-        response.setFulfillmentMessages(msgs);
-        System.out.println("==========Webhook - ENDS==========");
-        return getStringResponse(response);
+        return responseText;
+    }
+    private String getBirthdayString(GoogleCloudDialogflowV2WebhookRequest request, String responseText) {
+        responseText="I had fun birthday celebration with family. Here are some pictures from my birthday celebration.";
+        return responseText;
     }
 
     private String getStringResponse(Object response) throws IOException {
@@ -170,12 +185,12 @@ public class MainController {
             try {
                 String responseText = String.valueOf(queryResult.getFulfillmentMessages(0).getText().getText(0));
                 if(queryResult.getFulfillmentMessagesCount()>1){
-                    responseText = responseText + ". "+ String.valueOf(queryResult.getFulfillmentMessages(1).getText().getText(0));
+                    responseText = responseText + " "+ String.valueOf(queryResult.getFulfillmentMessages(1).getText().getText(0));
                 }
                 askResponse.setResponse(responseText);
                 askResponse.setAdditionalContext(queryResult.getFulfillmentText());
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.print(e);
             }
             askResponse.setIntent(queryResult.getIntent().toString());
             try {
@@ -184,8 +199,8 @@ public class MainController {
                 System.err.print(e);
             }
 
-            if(RANDOM.nextInt()%3==0) {
-                askResponse.setAsset("https://www.mimio.ai/static/media/twitter.5095d1f1.svg");
+            if(BirthdayIntent.equals(response.getQueryResult().getIntent().getDisplayName())) {
+                askResponse.setAsset("https://apiv3-m6yhyee6aa-wl.a.run.app/Photos/5.jpg");
             }
 
             System.out.println("====================");
