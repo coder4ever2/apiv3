@@ -20,6 +20,7 @@ import java.util.*;
 public class MainController {
     public static final Random RANDOM = new Random();
     public static final String BirthdayIntent = "user_ask_Bday";
+    public static final String MOVIE_CUSTOM = "MOVIE - custom";
     private static String projectId = "mimio-es-wmtr";
     private static String languageCode = "en-US";
     private static String sessionId = "123456789";
@@ -83,6 +84,8 @@ public class MainController {
                 .createJsonParser(rawData)
                 .parse(GoogleCloudDialogflowV2WebhookRequest.class);
 
+        System.out.println("Received webhook request" + request.toPrettyString());
+
         //Step 2. Process the request
         //Step 3. Build the response message
         System.out.println("=============Webhook BEGINS=======");
@@ -90,7 +93,7 @@ public class MainController {
         GoogleCloudDialogflowV2IntentMessageText text = new GoogleCloudDialogflowV2IntentMessageText();
         ArrayList<String> textList = new ArrayList<>();
         String responseText = "";
-        if("MOVIE - custom".equals(request.getQueryResult().getIntent().getDisplayName())) {
+        if(MOVIE_CUSTOM.equals(request.getQueryResult().getIntent().getDisplayName())) {
             System.out.println("=============MOVIE Webhook =======");
             responseText = getMovieString(request, responseText);
         }else if(BirthdayIntent.equals(request.getQueryResult().getIntent().getDisplayName())){
@@ -190,17 +193,21 @@ public class MainController {
                 askResponse.setResponse(responseText);
                 askResponse.setAdditionalContext(queryResult.getFulfillmentText());
             } catch (Exception e) {
-                System.err.print(e);
+                System.out.println(e.getMessage());
             }
             askResponse.setIntent(queryResult.getIntent().toString());
             try {
                 askResponse.setAudio(ResembleController.getAudioURL(askResponse.getResponse()));
             }catch(URISyntaxException e){
-                System.err.print(e);
+                System.out.println(e.getMessage());
             }
 
             if(BirthdayIntent.equals(response.getQueryResult().getIntent().getDisplayName())) {
-                askResponse.setAsset("https://apiv3-m6yhyee6aa-wl.a.run.app/Photos/5.jpg");
+                askResponse.setAssets(new String[]{
+                        "https://apiv3-m6yhyee6aa-wl.a.run.app/5.jpg"
+                        ,"https://apiv3-m6yhyee6aa-wl.a.run.app/6.jpg",
+                        "https://apiv3-m6yhyee6aa-wl.a.run.app/7.jpg"});
+                askResponse.setAsset("https://apiv3-m6yhyee6aa-wl.a.run.app/5.jpg");
             }
 
             System.out.println("====================");

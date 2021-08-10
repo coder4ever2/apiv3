@@ -15,6 +15,7 @@ public class AskResponse {
 
     private String intent;
 
+    private String[] assets;
 
     private String asset;
 
@@ -61,5 +62,13 @@ public class AskResponse {
 
     public void setAdditionalContext(String additionalContext) {
         this.additionalContext = additionalContext;
+    }
+
+    public String[] getAssets() {
+        return assets;
+    }
+
+    public void setAssets(String[] assets) {
+        this.assets = assets;
     }
 }
