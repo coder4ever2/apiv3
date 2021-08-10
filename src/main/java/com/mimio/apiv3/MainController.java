@@ -137,10 +137,10 @@ public class MainController {
     private String getBirthdayString(GoogleCloudDialogflowV2WebhookRequest request, String responseText) {
         responseText="I had fun birthday celebration with family. Here are some pictures from my birthday celebration.";
         try{
-            responseText = String.valueOf(request.getQueryResult().getFulfillmentMessages().get(0).getText());
+            responseText = String.valueOf(request.getQueryResult().getFulfillmentMessages().get(0).getText().get(0));
             if(request.getQueryResult().getFulfillmentMessages().size()>1) {
                 responseText += " ";
-                responseText += String.valueOf(request.getQueryResult().getFulfillmentMessages().get(1).getText());
+                responseText += String.valueOf(request.getQueryResult().getFulfillmentMessages().get(1).getText().get(0));
             }
         }catch(Exception e){
             System.out.println(e.getMessage());
