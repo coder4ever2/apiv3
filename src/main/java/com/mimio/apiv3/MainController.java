@@ -6,6 +6,8 @@ import com.google.api.gax.rpc.ApiException;
 import com.google.api.services.dialogflow.v2.model.*;
 import com.google.cloud.dialogflow.v2.*;
 import com.google.protobuf.InvalidProtocolBufferException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -25,8 +27,12 @@ public class MainController {
     private static String languageCode = "en-US";
     private static String sessionId = "123456789";
 
+    private static Logger logger = LoggerFactory.getLogger(MainController.class);
+
+
     @GetMapping("/hello")
     public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
+        logger.info("hello api");
         return String.format("Hello %s!", name);
     }
 
@@ -38,7 +44,7 @@ public class MainController {
     @GetMapping("/input")
     public String v2(@RequestParam(value="input") String input) throws IOException {
         Map<String, QueryResult> stringQueryResultMap = DialogFlowController.detectIntentTexts(projectId, input, languageCode, sessionId);
-        System.out.println(stringQueryResultMap);
+        logger.info(String.valueOf(stringQueryResultMap));
         return stringQueryResultMap.toString();
     }
 
@@ -48,8 +54,8 @@ public class MainController {
 
         Movie movie = restTemplate.getForObject(
                 "https://www.omdbapi.com/?apikey=bdfbd3aa&plot=short&t="+text, Movie.class);
-        System.out.println("Movie webhook called at " + new Date());
-        System.out.println(movie.toString());
+        logger.info("Movie webhook called at " + new Date());
+        logger.info(movie.toString());
         return movie;
     }
     @PostMapping(
@@ -62,8 +68,8 @@ public class MainController {
 
         Movie movie = restTemplate.getForObject(
                 "https://www.omdbapi.com/?apikey=bdfbd3aa&plot=short&t=3_idiots", Movie.class);
-        System.out.println("POST webhook called at " + new Date());
-        System.out.println(movie.toString());
+        logger.info("POST webhook called at " + new Date());
+        logger.info(movie.toString());
         return Collections.singletonMap("key2", "value2");
     }
     @PostMapping(
@@ -84,20 +90,20 @@ public class MainController {
                 .createJsonParser(rawData)
                 .parse(GoogleCloudDialogflowV2WebhookRequest.class);
 
-        System.out.println("Received webhook request" + request.toPrettyString());
+        logger.info("Received webhook request" + request.toPrettyString());
 
         //Step 2. Process the request
         //Step 3. Build the response message
-        System.out.println("=============Webhook BEGINS=======");
+        logger.info("=============Webhook BEGINS=======");
         GoogleCloudDialogflowV2IntentMessage msg = new GoogleCloudDialogflowV2IntentMessage();
         GoogleCloudDialogflowV2IntentMessageText text = new GoogleCloudDialogflowV2IntentMessageText();
         ArrayList<String> textList = new ArrayList<>();
         String responseText = "";
         if(MOVIE_CUSTOM.equals(request.getQueryResult().getIntent().getDisplayName())) {
-            System.out.println("=============MOVIE Webhook =======");
+            logger.info("=============MOVIE Webhook =======");
             responseText = getMovieString(request, responseText);
         }else if(BirthdayIntent.equals(request.getQueryResult().getIntent().getDisplayName())){
-            System.out.println("=============BIRTHDAY Webhook =======");
+            logger.info("=============BIRTHDAY Webhook =======");
             responseText = getBirthdayString(request, responseText);
         }
         textList.add(responseText);
@@ -108,7 +114,7 @@ public class MainController {
 
         GoogleCloudDialogflowV2WebhookResponse response = new GoogleCloudDialogflowV2WebhookResponse();
         response.setFulfillmentMessages(msgs);
-        System.out.println("==========Webhook - ENDS==========");
+        logger.info("==========Webhook - ENDS==========");
         return getStringResponse(response);
     }
 
@@ -137,13 +143,13 @@ public class MainController {
     private String getBirthdayString(GoogleCloudDialogflowV2WebhookRequest request, String responseText) {
         responseText="I had fun birthday celebration with family. Here are some pictures from my birthday celebration.";
         try{
-            responseText = String.valueOf(request.getQueryResult().getFulfillmentMessages().get(0).getText().get(0));
+            responseText = String.valueOf(request.getQueryResult().getFulfillmentMessages().get(0).getText().getText().get(0));
             if(request.getQueryResult().getFulfillmentMessages().size()>1) {
                 responseText += " ";
-                responseText += String.valueOf(request.getQueryResult().getFulfillmentMessages().get(1).getText().get(0));
+                responseText += String.valueOf(request.getQueryResult().getFulfillmentMessages().get(1).getText().getText().get(0));
             }
         }catch(Exception e){
-            System.out.println(e.getMessage());
+            logger.error(e.getMessage());
         }
         return responseText;
     }
@@ -176,7 +182,7 @@ public class MainController {
         try (SessionsClient sessionsClient = SessionsClient.create()) {
             // Set the session name using the sessionId (UUID) and projectID (my-project-id)
             SessionName session = SessionName.of(projectId, sessionId);
-            System.out.println("Session Path: " + session.toString());
+            logger.info("Session Path: " + session.toString());
 
 
             // Set the text (hello) and language code (en-US) for the query
@@ -202,13 +208,13 @@ public class MainController {
                 askResponse.setResponse(responseText);
                 askResponse.setAdditionalContext(queryResult.getFulfillmentText());
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                logger.error(e.getMessage());
             }
             askResponse.setIntent(queryResult.getIntent().toString());
             try {
                 askResponse.setAudio(ResembleController.getAudioURL(askResponse.getResponse()));
             }catch(URISyntaxException e){
-                System.out.println(e.getMessage());
+                logger.error(e.getMessage());
             }
 
             if(BirthdayIntent.equals(response.getQueryResult().getIntent().getDisplayName())) {
@@ -219,7 +225,7 @@ public class MainController {
                 askResponse.setAsset("https://apiv3-m6yhyee6aa-wl.a.run.app/5.jpg");
             }
 
-            System.out.println("====================");
+            logger.info("====================");
             System.out.format("Query Text: '%s'\n", queryResult.getQueryText());
             System.out.format(
                     "Detected Intent: %s (confidence: %f)\n",
