@@ -125,19 +125,29 @@ public class MainController {
             Movie movie = restTemplate.getForObject(
                     "https://www.omdbapi.com/?apikey=bdfbd3aa&plot=short&t="+movieName, Movie.class);
             if(movie!=null && movie.getPlot()!=null){
-                responseText = responseText + "I also like the movie "
-                        + movie.getTitle()
-                        + ", I think it's an interesting "
+                responseText = responseText + "Seems like a good "
+                        //+ movie.getTitle()
+                        //+ ", I think it's an interesting "
                         + movie.getGenre()
-                        + " movie."
+                        + " movie. "
                         //+movie.getPlot()
                         //+ "I believe it also got a won interesting awards. "+ movie.getAwards()
                         //+ " Pretty cool, right?"
                         ;
             }
         }else {
-            responseText = "I haven't heard of this movie.";
+            responseText = "I haven't heard of this movie. ";
         }
+        try{
+            responseText += String.valueOf(request.getQueryResult().getFulfillmentMessages().get(0).getText().getText().get(0));
+            if(request.getQueryResult().getFulfillmentMessages().size()>1) {
+                responseText += " ";
+                responseText += String.valueOf(request.getQueryResult().getFulfillmentMessages().get(1).getText().getText().get(0));
+            }
+        }catch(Exception e){
+            logger.error(e.getMessage());
+        }
+
         return responseText;
     }
     private String getBirthdayString(GoogleCloudDialogflowV2WebhookRequest request, String responseText) {

@@ -3,12 +3,17 @@ package com.mimio.apiv3;
 import com.google.api.gax.rpc.ApiException;
 import com.google.cloud.dialogflow.v2.*;
 import com.google.common.collect.Maps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 public class DialogFlowController {
+
+    private static Logger logger = LoggerFactory.getLogger(DialogFlowController.class);
+
 
     // DialogFlow API Detect Intent sample with text inputs.
     public static Map<String, QueryResult> detectIntentTexts(
@@ -19,7 +24,7 @@ public class DialogFlowController {
         try (SessionsClient sessionsClient = SessionsClient.create()) {
             // Set the session name using the sessionId (UUID) and projectID (my-project-id)
             SessionName session = SessionName.of(projectId, sessionId);
-            System.out.println("Session Path: " + session.toString());
+            logger.info("Session Path: " + session.toString());
 
             // Detect intents for each text input
             // Set the text (hello) and language code (en-US) for the query
@@ -35,7 +40,7 @@ public class DialogFlowController {
             // Display the query result
             QueryResult queryResult = response.getQueryResult();
 
-            System.out.println("====================");
+            logger.info("====================");
             System.out.format("Query Text: '%s'\n", queryResult.getQueryText());
             System.out.format(
                     "Detected Intent: %s (confidence: %f)\n",
