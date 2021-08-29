@@ -1,5 +1,7 @@
 package com.mimio.apiv3;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -9,6 +11,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class ResembleController {
+
+    private static Logger logger = LoggerFactory.getLogger(ResembleController.class);
+
 
     public static String getAudioURL(String text) throws URISyntaxException {
         URI uri = new URI(
@@ -33,7 +38,7 @@ public class ResembleController {
 
         RestTemplate restTemplate = new RestTemplate();
         String audioUrl = restTemplate.postForObject(uri, httpEntity, String.class);
-
+        logger.info("Audio URL:" + audioUrl);
 
         return audioUrl;
     }

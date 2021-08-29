@@ -223,7 +223,8 @@ public class MainController {
             askResponse.setIntent(queryResult.getIntent().toString());
             try {
                 askResponse.setAudio(ResembleController.getAudioURL(askResponse.getResponse()));
-            }catch(URISyntaxException e){
+                logger.info("Set audio response");
+            }catch(Exception e){
                 logger.error(e.getMessage());
             }
 
@@ -236,15 +237,14 @@ public class MainController {
             }
 
             logger.info("====================");
-            System.out.format("Query Text: '%s'\n", queryResult.getQueryText());
-            System.out.format(
-                    "Detected Intent: %s (confidence: %f)\n",
-                    queryResult.getIntent().getDisplayName(), queryResult.getIntentDetectionConfidence());
-            System.out.format(
-                    "Fulfillment Text: '%s'\n",
-                    queryResult.getFulfillmentMessagesCount() > 0
+            logger.info("Query Text: "+ queryResult.getQueryText());
+            logger.info(
+                    "Detected Intent: " + queryResult.getIntent().getDisplayName() +" "+ queryResult.getIntentDetectionConfidence());
+            logger.info(
+                    "Fulfillment Text: " +
+                            (queryResult.getFulfillmentMessagesCount() > 0
                             ? queryResult.getFulfillmentMessages(0).getText()
-                            : "Triggered Default Fallback Intent");
+                            : "Triggered Default Fallback Intent"));
 
         }
         return queryResult;
