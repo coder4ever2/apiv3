@@ -225,7 +225,9 @@ public class MainController {
                 askResponse.setAudio(ResembleController.getAudioURL(askResponse.getResponse()));
                 logger.info("Set audio response");
             }catch(Exception e){
+                logger.error("Resemble Error");
                 logger.error(e.getMessage());
+                logger.error(e.getCause().toString());
             }
 
             if(BirthdayIntent.equals(response.getQueryResult().getIntent().getDisplayName())) {
